@@ -6,11 +6,10 @@ const connectDB = async () => {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1); // Exit with failure
+    process.exit(1);
   }
 };
 
-// Handle MongoDB connection errors after initial connection
 mongoose.connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
   process.exit(1);
@@ -21,7 +20,6 @@ mongoose.connection.on('disconnected', () => {
   process.exit(1);
 });
 
-// Handle process termination
 process.on('SIGINT', async () => {
   try {
     await mongoose.connection.close();

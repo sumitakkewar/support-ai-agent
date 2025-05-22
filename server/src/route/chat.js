@@ -1,17 +1,13 @@
 import express from 'express';
-import auth from '../middleware/auth.js';
-import catchAsync from '../utils/catchAsync.js';
-import AppError from '../utils/AppError.js';
+import authMiddleware from '../middleware/auth.js';
+import { validateChatInput, validateMessageInput } from '../middleware/chatValidation.js';
+import { createChat, getChats, getMessages, sendMessage } from '../controller/ChatController.js';
 
 const router = express.Router();
 
-router.post('/', auth, catchAsync(async (req, res) => {
-  if (!req.user?.userId) {
-    throw new AppError('User not authenticated', 401);
-  }
-
-  // TODO: Implement actual AI chat logic here
-  res.json({ reply: 'AI reply placeholder' });
-}));
+router.post('/', authMiddleware, validateChatInput, createChat);
+router.get('/', authMiddleware, getChats);
+router.post('/:chatId/message', authMiddleware, validateMessageInput, sendMessage);
+router.get('/:chatId/message', authMiddleware, getMessages);
 
 export default router;

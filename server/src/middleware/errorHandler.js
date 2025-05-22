@@ -17,15 +17,15 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
-const handleJWTError = () => 
+const handleJWTError = () =>
   new AppError('Invalid token. Please log in again!', 401);
 
-const handleJWTExpiredError = () => 
+const handleJWTExpiredError = () =>
   new AppError('Your token has expired! Please log in again.', 401);
 
 
 const sendErrorDev = (err, res) => {
-  
+
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -40,14 +40,14 @@ const sendErrorProd = (err, res) => {
       status: err.status,
       message: err.message
     });
-  } 
-  
+  }
+
   else {
     console.error('ERROR', {
       message: err.message,
       stack: err.stack
     });
-    
+
     res.status(500).json({
       status: 'error',
       message: 'Something went wrong!'

@@ -1,17 +1,26 @@
-import Chat from '../model/Chat.js';
-import ChatMessage from '../model/ChatMessage.js';
 import { getAIReply } from '../services/chat/ChatService.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
 import { systemPrompt } from '../config/chatai.js';
+import chatRepository from '../repositories/ChatRepository.js';
+import chatMessageRepository from '../repositories/ChatMessageRepository.js';
 
 export const createChat = catchAsync(async (req, res) => {
     const { title } = req.body;
-    const chat = await Chat.create({ 
-        userId: req.user._id, 
-        title: req.body.title,
+    const chat = await chatRepository.create({
+        userId: req.user.userId,
+        title,
         systemPrompt
     });
+
+    const messages = [
+        { role: 'system', content: chat.systemPrompt },
+    ];
+
+    const assistantReply = await getAIReply(req.user.userId, messages);
+
+    await chatMessageRepository.createMessage(chat._id, 'assistant', assistantReply);
+
     res.status(201).json(chat);
 });
 
@@ -19,46 +28,73 @@ export const sendMessage = catchAsync(async (req, res) => {
     const { content } = req.body;
     const chatId = req.params.chatId;
 
-    // Validate chat exists and belongs to user
-    const chat = await Chat.findOne({ _id: chatId, userId: req.user._id });
+    const chat = await chatRepository.findOneByUserIdAndId(req.user.userId, chatId);
     if (!chat) {
         throw new AppError('Chat not found or unauthorized', 404);
     }
 
-    const userMsg = await ChatMessage.create({
-        chatId,
-        sender: "user",
-        content
-    });
+    const previousMessages = await chatMessageRepository.findByChatId(chatId, { sort: { createdAt: 1 } });
 
-    // Generate assistant reply
-    const assistantReply = await getAIReply(content);
+    const messages = [
+        { role: 'system', content: chat.systemPrompt },
+        ...previousMessages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content,
+        })),
+        { role: 'user', content }
+    ];
 
-    const assistantMsg = await ChatMessage.create({
-        chatId,
-        sender: 'assistant',
-        content: assistantReply
-    });
+    await chatMessageRepository.createMessage(chatId, 'user', content);
 
-    res.status(201).json([userMsg, assistantMsg]);
+    const assistantReply = await getAIReply(req.user.userId, messages);
+
+    const assistantMsg = await chatMessageRepository.createMessage(chatId, 'assistant', assistantReply);
+
+    res.status(201).json(assistantMsg);
 });
 
 export const getMessages = catchAsync(async (req, res) => {
     const chatId = req.params.chatId;
-    
-    // Validate chat exists and belongs to user
-    const chat = await Chat.findOne({ _id: chatId, userId: req.user._id });
+    const page = parseInt(req.query.page || '1', 10);
+    const limit = parseInt(req.query.limit || '20', 10);
+
+    const chat = await chatRepository.findOneByUserIdAndId(req.user.userId, chatId);
     if (!chat) {
         throw new AppError('Chat not found or unauthorized', 404);
     }
 
-    const messages = await ChatMessage.find({ chatId })
-        .sort({ timestamp: 1 });
-    res.status(200).json(messages);
+    const totalCount = await chatMessageRepository.countByChatId(chatId);
+
+    const messages = await chatMessageRepository.findByChatId(chatId, {
+        sort: { createdAt: -1 },
+        skip: (page - 1) * limit,
+        limit
+    });
+
+    const hasMore = (page * limit) < totalCount;
+
+    res.status(200).json({
+        messages,
+        hasMore,
+    });
 });
 
 export const getChats = catchAsync(async (req, res) => {
-    const chats = await Chat.find({ userId: req.user._id })
-        .sort({ createdAt: -1 });
-    res.status(200).json(chats);
+    const page = parseInt(req.query.page || '1', 10);
+    const limit = parseInt(req.query.limit || '20', 10);
+
+    const totalCount = await chatRepository.countByUserId(req.user.userId);
+
+    const chats = await chatRepository.findByUserId(req.user.userId, {
+        sort: { createdAt: -1 },
+        skip: (page - 1) * limit,
+        limit
+    });
+
+    const hasMore = (page * limit) < totalCount;
+
+    res.status(200).json({
+        chats,
+        hasMore,
+    });
 });

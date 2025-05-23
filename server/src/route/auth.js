@@ -2,9 +2,21 @@ import express from 'express';
 import { signup, login } from '../controller/AuthController.js';
 import { validateSignupInput, validateLoginInput } from '../middleware/authValidation.js';
 
-const router = express.Router();
+class AuthRouter {
+  constructor() {
+    this.router = express.Router();
+    this.setupRoutes();
+  }
 
-router.post('/signup', validateSignupInput, signup);
-router.post('/login', validateLoginInput, login);
+  setupRoutes() {
+    this.router.post('/signup', validateSignupInput, signup);
+    this.router.post('/login', validateLoginInput, login);
+  }
 
-export default router;
+  getRouter() {
+    return this.router;
+  }
+}
+
+const authRouter = new AuthRouter();
+export default authRouter

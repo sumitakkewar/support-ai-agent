@@ -1,28 +1,21 @@
-import { useState } from 'react'
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import { BrowserRouter, Routes, Route } from "react-router";
+import Login from "./components/Login";
+import ChatPage from "./components/ChatPage";
+import Signup from "./components/Signup";
 
 function App() {
-  const [input, setInput] = useState('')
-  const [response, setResponse] = useState('')
-
-  const handleSend = async () => {
-    const res = await fetch(`${baseURL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: input }),
-    })
-    const data = await res.json()
-    setResponse(data.reply)
-  }
-
   return (
     <div>
-      <h1>AI Support Chat Application</h1>
-      <input value={input} onChange={(e) => setInput(e.target.value)} />
-      <button onClick={handleSend}>Send</button>
-      <p>AI: {response}</p>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/home" element={<ChatPage />} />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </BrowserRouter>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -3,7 +3,6 @@ import AppError from '../utils/AppError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { jwtSecret } from '../config/app.js';
 
-
 const auth = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {

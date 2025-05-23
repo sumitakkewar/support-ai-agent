@@ -1,3 +1,4 @@
+import { mode } from '../config/app.js';
 import AppError from '../utils/AppError.js';
 
 const handleCastErrorDB = (err) => {
@@ -26,6 +27,13 @@ const handleJWTExpiredError = () =>
 
 const sendErrorDev = (err, res) => {
 
+  console.error('ERROR', {
+    status: err.status,
+    error: err,
+    message: err.message,
+    stack: err.stack
+  });
+
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -40,10 +48,10 @@ const sendErrorProd = (err, res) => {
       status: err.status,
       message: err.message
     });
-  }
-
-  else {
+  } else {
     console.error('ERROR', {
+      status: err.status,
+      error: err,
       message: err.message,
       stack: err.stack
     });
@@ -59,7 +67,7 @@ export default (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV === 'development') {
+  if (mode === 'development') {
     sendErrorDev(err, res);
   } else {
     let error = { ...err };

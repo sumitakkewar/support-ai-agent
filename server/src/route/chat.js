@@ -3,11 +3,24 @@ import authMiddleware from '../middleware/auth.js';
 import { validateChatInput, validateMessageInput } from '../middleware/chatValidation.js';
 import { createChat, getChats, getMessages, sendMessage } from '../controller/ChatController.js';
 
-const router = express.Router();
+class ChatRouter {
+  constructor() {
+    this.router = express.Router();
+    this.setupRoutes();
+  }
 
-router.post('/', authMiddleware, validateChatInput, createChat);
-router.get('/', authMiddleware, getChats);
-router.post('/:chatId/message', authMiddleware, validateMessageInput, sendMessage);
-router.get('/:chatId/message', authMiddleware, getMessages);
+  setupRoutes() {
+    this.router.post('/', authMiddleware, validateChatInput, createChat);
+    this.router.get('/', authMiddleware, getChats);
 
-export default router;
+    this.router.post('/:chatId/message', authMiddleware, validateMessageInput, sendMessage);
+    this.router.get('/:chatId/message', authMiddleware, getMessages);
+  }
+
+  getRouter() {
+    return this.router;
+  }
+}
+
+const chatRouter = new ChatRouter();
+export default chatRouter

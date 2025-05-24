@@ -2,8 +2,7 @@ import OpenAI from 'openai';
 import { AIChatStrategy } from './AIChatStrategy.js';
 import { apiKey, baseURL, modelName, systemPrompt } from './../../config/chatai.js'
 import { siteName, siteUrl } from '../../config/app.js';
-import { customerReportTools } from '../../tools/customerTools.js';
-import { executeToolCall } from '../../tools/toolExecutor.js';
+import { toolFunctionMap } from '../../tools/customerTools.js';
 import AppError from '../../utils/AppError.js';
 
 export class OpenAISdkStrategy extends AIChatStrategy {
@@ -21,57 +20,72 @@ export class OpenAISdkStrategy extends AIChatStrategy {
 
   async getReply(userId, messages) {
 
-    const TOOL_CALL_PREFIX = 'TOOL_CALL:';
-
     const response = await this.openai.chat.completions.create({
       model: modelName,
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages
-      ]
+      ],
+      response_format: {
+        type: 'json_object'
+      }
     });
 
     if (response.error) {
       console.log({ response })
+      console.error({ error: response.error })
+      console.error({ metadata: response.error.metadata })
       throw new AppError("something went wrong")
     }
 
     const choice = response.choices[0];
-    const message = choice.message.content || ''
+    let parsedContent = choice.message.content || '';
 
-    for (let i = 0; i < response.choices.length; i++) {
-      const cho = response.choices[i];
-      console.log({ cho }, "choice " + i)
+    console.debug("choice", { choice })
+
+    if (typeof parsedContent === 'string') {
+      try {
+        const parsed = JSON.parse(parsedContent);
+        if (parsed.type === 'chat' && parsed.content) {
+          parsedContent = parsed.content;
+        } else {
+          parsedContent = parsed;
+        }
+      } catch (error) {
+        console.error({ error })
+      }
     }
 
+    if (parsedContent.type === 'function') {
+      const toolName = parsedContent.function;
+      const toolPayload = parsedContent.input;
 
-    if (message.startsWith(TOOL_CALL_PREFIX)) {
-      const [_, toolNameLine, ...rest] = message.split('\n');
-      const toolName = toolNameLine.trim().replace(TOOL_CALL_PREFIX, '').trim();
-      const toolPayload = rest.join('\n');
-
-      const tool = customerReportTools.find(t => t.type && t.function.name === toolName);
+      const tool = toolFunctionMap[toolName];
       if (!tool) return `Tool ${toolName} not found`;
 
-      const result = await executeToolCall({
-        name: tool, arguments: JSON.stringify(toolPayload)
-      }, userId);
+      const result = await tool({ ...toolPayload, userId })
 
       const responseNew = await this.getReply(
         userId,
         [
           ...messages,
-          choice.message,
           {
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: result.toString()
+            role: 'assistant',
+            content: choice.message.content
+          },
+          {
+            role: "assistant",
+            content: "Tools Response:" + result.toString()
           }
         ]
-      )
-      return responseNew.choices[0].message.content;
+      );
+      return responseNew;
     }
 
-    return choice.message.content || 'No response';
+    if (parsedContent.type === 'chat') {
+      return parsedContent;
+    }
+
+    return parsedContent
   }
 }

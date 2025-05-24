@@ -7,6 +7,7 @@ import chatMessageRepository from '../repositories/ChatMessageRepository.js';
 
 export const createChat = catchAsync(async (req, res) => {
     const { title } = req.body;
+
     const chat = await chatRepository.create({
         userId: req.user.userId,
         title,

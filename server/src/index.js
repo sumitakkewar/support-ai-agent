@@ -6,9 +6,11 @@ import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 import requestLogger from './middleware/requestLogger.js';
 import { port } from './config/app.js';
+import limiter from './middleware/rateLimit.js';
 
 const app = express();
 
+app.use(limiter)
 app.use(express.json());
 app.use(cors());
 app.use(requestLogger);

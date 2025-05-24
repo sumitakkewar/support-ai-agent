@@ -13,7 +13,7 @@ export default function RecentChats({ onNewChat, onSelectChat }) {
     error: chatListError,
     updateChats,
     hasMore,
-    loadMore
+    loadMore,
   } = useChatList();
 
   const {
@@ -76,11 +76,11 @@ export default function RecentChats({ onNewChat, onSelectChat }) {
             >
               Cancel
             </button>
-            {error && <p className="text-red-500 mb-2">{error}</p>}
-            {loading && <div className="p-4">Creating new chat...</div>}
           </div>
         </form>
       )}
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+      {loading && <div className="p-4">Creating new chat...</div>}
 
       <ChatList
         onSelect={onSelectChat}

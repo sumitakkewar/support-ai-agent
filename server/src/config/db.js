@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+export const mongoUrl = process.env.MONGO_URI
 class Database {
   constructor() {
     this.connection = null;

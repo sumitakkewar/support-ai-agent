@@ -4,9 +4,23 @@ import usePaginatedMessages from "../hook/usePaginatedMessages";
 import { getAIReply } from "../service/aiService";
 import { AuthContext } from "../context/AuthContext";
 
+function TypingIndicator() {
+  return (
+    <div className="flex items-center space-x-2 p-4">
+      <div className="flex space-x-1">
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
+      <span className="text-sm text-gray-500">AI is typing...</span>
+    </div>
+  );
+}
+
 function ChatWindow({ currentChat }) {
   const messagesEndRef = useRef(null);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const {
     user: { token },
   } = useContext(AuthContext);
@@ -17,7 +31,7 @@ function ChatWindow({ currentChat }) {
   // Scroll chat to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   async function handleSend(e) {
     e.preventDefault();
@@ -31,12 +45,12 @@ function ChatWindow({ currentChat }) {
     };
 
     appendMessages(userMsg);
-
     setInput("");
+    setIsTyping(true);
 
     // Call API to get AI reply
     const aiReply = await handleSendMessage(input);
-
+    setIsTyping(false);
     appendMessages(aiReply);
   }
 
@@ -47,7 +61,12 @@ function ChatWindow({ currentChat }) {
       return aiResponse;
     } catch (error) {
       console.error("AI Error:", error);
-      return "Sorry, something went wrong.";
+      return {
+        _id: Date.now().toString(),
+        sender: "ai",
+        content: "Sorry, something went wrong.",
+        createdAt: new Date(),
+      };
     }
   }
 
@@ -66,6 +85,7 @@ function ChatWindow({ currentChat }) {
         {messages.map((msg) => (
           <ChatMessage key={msg._id} message={msg} />
         ))}
+        {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
 
@@ -87,6 +107,7 @@ function ChatWindow({ currentChat }) {
           <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-r"
+            disabled={isTyping}
           >
             Send
           </button>

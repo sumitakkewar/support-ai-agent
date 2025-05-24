@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3001:80"
+    env_file:
+      - ./client/.env
     depends_on:
       - backend
 
@@ -15,3 +17,5 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5001:5000"
+    env_file:
+      - ./server/.env

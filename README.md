@@ -1,4 +1,8 @@
-# AI Support Chat Server
+# AI Support Chat Application
+
+This repository contains both the server and client components of the AI Support Chat application. The application provides a modern web interface for interacting with AI-powered chat functionality.
+
+## Server Component
 
 This is the server component of the AI Support Chat application. It provides a RESTful API for authentication, chat functionality, and integration with AI services.
 
@@ -145,3 +149,110 @@ The server implements a global error handling middleware that processes and form
 - CORS configuration
 - Environment variable protection
 - Request logging for monitoring
+
+## Client Component
+
+The client is a React-based web application built with Vite, providing a modern and responsive user interface for the AI Support Chat application.
+
+### Features
+
+- Modern React with Vite build system
+- Responsive and intuitive user interface
+- Real-time chat interactions
+- Authentication integration
+- State management with React Context
+- Custom hooks for reusable logic
+- Service layer for API communication
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Docker and Docker Compose (for containerized deployment)
+
+### Installation
+
+1. Navigate to the client directory:
+   ```bash
+   cd client
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the client directory:
+   ```
+   VITE_API_URL=http://localhost:5000  # Backend API URL
+   ```
+
+### Running the Client
+
+#### Development Mode
+```bash
+npm run dev
+```
+This will start the development server with hot-reloading enabled.
+
+#### Production Build
+```bash
+npm run build
+```
+This creates an optimized production build in the `dist` directory.
+
+### Docker Support
+
+The client includes Docker configurations for both development and production environments:
+
+#### Development
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+```
+
+#### Production
+```bash
+docker-compose up
+```
+
+### Project Structure
+
+```
+client/
+├── src/
+│   ├── assets/        # Static assets (images, fonts, etc.)
+│   ├── components/    # Reusable React components
+│   ├── config/        # Configuration files
+│   ├── context/       # React Context providers
+│   ├── hook/          # Custom React hooks
+│   ├── service/       # API service layer
+│   ├── App.jsx        # Main application component
+│   └── main.jsx       # Application entry point
+├── public/            # Public static files
+├── Dockerfile         # Production Docker configuration
+├── Dockerfile.dev     # Development Docker configuration
+└── vite.config.js     # Vite configuration
+```
+
+### Dependencies
+
+- React: UI library
+- Vite: Build tool and development server
+- TailwindCSS: Utility-first CSS framework
+- Axios: HTTP client
+- React Router: Client-side routing
+- React Query: Data fetching and caching
+
+### Development
+
+The client application uses modern development practices:
+
+- Hot Module Replacement (HMR)
+- ESLint for code linting
+- PostCSS for CSS processing
+- Environment-based configuration
+- Docker containerization
+
+### Deployment
+
+The client can be deployed using Docker Compose along with the server component. The production build is optimized for performance and served using Nginx.

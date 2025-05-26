@@ -7,11 +7,8 @@ export default function ChatContainer() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
-      <RecentChats
-        onNewChat={setActiveChatId}
-        onSelectChat={setActiveChatId}
-      />
-      <ChatWindow currentChat={activeChatId} />
+      <RecentChats onNewChat={setActiveChatId} onSelectChat={setActiveChatId} />
+      {activeChatId && <ChatWindow currentChat={activeChatId} />}
     </div>
   );
 }

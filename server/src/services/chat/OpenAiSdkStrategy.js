@@ -26,9 +26,9 @@ export class OpenAISdkStrategy extends AIChatStrategy {
         { role: 'system', content: systemPrompt },
         ...messages
       ],
-      response_format: {
-        type: 'json_object'
-      }
+      // response_format: {
+      //   type: 'json_object'
+      // }
     });
 
     if (response.error) {
